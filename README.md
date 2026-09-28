@@ -26,7 +26,19 @@ A prototype of an AI-powered recruiter system that:
 
 ## Usage
 
-Open the HTML file in any browser. The system includes a local mock AI that functions without claude.ai, or open in [claude.ai](https://claude.ai) for the full AI-powered experience with live screening and interviews.
+Run a local web server to open the HTML file:
+
+```bash
+# Python
+python -m http.server 8000
+
+# Or Node.js
+npx serve -l 8000
+```
+
+Then open: `http://localhost:8000/AI%20Recruiter%20System.html`
+
+Or simply double-click the HTML file in any browser (local mock AI works offline, or open in [claude.ai](https://claude.ai) for full AI experience).
 
 ## License
 
