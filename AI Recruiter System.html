@@ -142,11 +142,139 @@
 (function(){
   if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }
 
-  var sample = null;
   function showNote(t){ var n=document.getElementById('note'); n.textContent=t; n.style.display='block'; }
-  (window.claude && window.claude.use ? window.claude.use('sample') : Promise.resolve(null))
-    .then(function(s){ sample = s; if(!s) showNote('This prototype needs the live AI connection \u2014 open it inside claude.ai to screen candidates and run interviews.'); })
-    .catch(function(){ showNote('This prototype needs the live AI connection \u2014 open it inside claude.ai to screen candidates and run interviews.'); });
+
+  var MockClaude = {
+    json: function(prompt, opts){
+      var text = prompt || '';
+      var modelTier = (opts && opts.modelTier) || 'quick';
+      var cache = (opts && opts.cache) !== false;
+      var result = { evaluation: '', nextQuestion: '', technicalScore: 0, communicationScore: 0, summary: '', strengths: [], weaknesses: [] };
+
+      if (text.includes('programming') || text.includes('dsa') || text.includes('backend') || text.includes('database') || text.includes('projects') || text.includes('github') || text.includes('linkedin') || text.includes('communication')){
+        result = this.screenCandidate(prompt);
+      } else if (text.includes('evaluation') || text.includes('nextQuestion')) {
+        result = this.interviewEvaluation(prompt);
+      } else if (text.includes('technicalScore') || text.includes('communicationScore')) {
+        result = this.generateReport(prompt);
+      }
+      return Promise.resolve(result);
+    },
+
+    screenCandidate: function(prompt){
+      var programming = 5, dsa = 5, backend = 5, database = 5, projects = 5, github = 5, linkedin = 5, communication = 5;
+      var identityConsistent = true, skillsListed = false, projectsVerifiable = false;
+      var reason = 'Review resume for skill details';
+
+      var resume = (prompt && prompt.match(/Resume: (.+)/)) ? prompt.match(/Resume: (.+)/)[1] : '';
+      resume = resume || '';
+
+      var skillKeywords = {
+        programming: ['java', 'python', 'javascript', 'c++', 'c#', 'typescript', 'go', 'rust'],
+        dsa: ['algorithm', 'data structure', 'array', 'linked list', 'tree', 'graph', 'sorting'],
+        backend: ['node', 'express', 'django', 'flask', 'spring', 'api', 'rest', 'server'],
+        database: ['sql', 'postgresql', 'mysql', 'mongodb', 'redis', 'database'],
+        projects: ['project', 'built', 'developed', 'application', 'system', 'feature'],
+        github: ['github', 'repository', 'commit', 'push', 'code'],
+        linkedin: ['linkedin', 'profile', 'experience'],
+        communication: ['communication', 'discuss', 'explain', 'describe']
+      };
+
+      var resumeLower = resume.toLowerCase();
+      DIMS.forEach(function(d){
+        var keywords = skillKeywords[d] || [];
+        var found = 0;
+        keywords.forEach(function(k){ if (resumeLower.includes(k)) found++; });
+        var score = Math.round((Math.min(found, keywords.length) / keywords.length) * 10) / 10;
+        score = Math.max(0, Math.min(10, score));
+        if (d === 'programming') programming = score;
+        if (d === 'dsa') dsa = score;
+        if (d === 'backend') backend = score;
+        if (d === 'database') database = score;
+        if (d === 'projects') projects = score;
+        if (d === 'github') github = score;
+        if (d === 'linkedin') linkedin = score;
+        if (d === 'communication') communication = score;
+      });
+
+      var sum = programming + dsa + backend + database + projects + github + linkedin + communication;
+      var overall = Math.round((sum / 8) * 10) / 10;
+
+      var nameMatch = (prompt && prompt.match(/Candidate name: (.+)/)) ? prompt.match(/Candidate name: (.+)/)[1] : '';
+      var githubUrl = (prompt && prompt.match(/GitHub: (.+)/)) ? prompt.match(/GitHub: (.+)/)[1] : '';
+      var linkedinUrl = (prompt && prompt.match(/LinkedIn: (.+)/)) ? prompt.match(/LinkedIn: (.+)/)[1] : '';
+
+      if (nameMatch && githubUrl && linkedinUrl){
+        var nameFromGithub = githubUrl.split('/').pop() || '';
+        var nameFromLinkedin = linkedinUrl.split('/').pop() || '';
+        identityConsistent = nameMatch.toLowerCase().includes(nameFromGithub.toLowerCase()) || nameMatch.toLowerCase().includes(nameFromLinkedin.toLowerCase());
+      }
+
+      var hasSkillKeywords = false;
+      DIMS.forEach(function(d){ if (resumeLower.includes((skillKeywords[d] || [])[0])) skillsListed = true; });
+      if (skillsListed) hasSkillKeywords = true;
+
+      projectsVerifiable = projects >= 6;
+
+      var identityNote = '';
+      if (!identityConsistent) identityNote = 'Name mismatch across GitHub/LinkedIn/resume';
+
+      return {
+        programming: programming,
+        dsa: dsa,
+        backend: backend,
+        database: database,
+        projects: projects,
+        github: github,
+        linkedin: linkedin,
+        communication: communication,
+        identityConsistent: identityConsistent,
+        identityNote: identityNote,
+        skillsListed: skillsListed,
+        projectsVerifiable: projectsVerifiable,
+        projectsNote: 'Projects ' + (projectsVerifiable ? 'verifiable' : 'limited detail'),
+        reason: 'Screening based on resume keywords: ' + reason,
+        evaluation: 'Candidate scored ' + overall + '/10'
+      };
+    },
+
+    interviewEvaluation: function(prompt){
+      var lastAnswer = (prompt && prompt.match(/Interview so far:.*\nA: (.+)$/)) ? prompt.match(/Interview so far:.*\nA: (.+)$/)[1] : '';
+      var title = (prompt && prompt.match(/Role: (.+)/)) ? prompt.match(/Role: (.+)/)[1] : 'Software Engineer';
+      var resume = (prompt && prompt.match(/Resume: (.+)/)) ? prompt.match(/Resume: (.+)/)[1] : '';
+
+      var evaluation = 'Good explanation of ' + (lastAnswer.substring(0, 30) || 'the project') + '...';
+      var nextQuestion = 'Tell me more about your experience with ' + title + ' projects.';
+
+      var weaknesses = ['Could use more detail on scaling'];
+      var strengths = ['Clear project description'];
+
+      return {
+        evaluation: evaluation,
+        nextQuestion: nextQuestion
+      };
+    },
+
+    generateReport: function(prompt){
+      var name = (prompt && prompt.match(/Candidate: (.+)/)) ? prompt.match(/Candidate: (.+)/)[1] : 'Candidate';
+      var score = 75 + Math.floor(Math.random() * 20);
+      var commScore = 70 + Math.floor(Math.random() * 25);
+      var summary = 'Candidate demonstrated solid ' + (score > 80 ? 'technical' : 'foundational') + ' skills';
+      var strengths = ['Good problem-solving approach', 'Clear project structure'];
+      var weaknesses = ['Could provide more technical depth', 'Limited experience with ' + (score < 70 ? 'databases' : 'backend systems')];
+
+      return {
+        technicalScore: score,
+        communicationScore: commScore,
+        summary: summary,
+        strengths: strengths,
+        weaknesses: weaknesses
+      };
+    }
+  };
+
+  window.sample = MockClaude;
+  showNote('Local mock AI active - no claude.ai needed');
 
   var ROLES = {
     sde: { title: 'Junior Software Engineer', reqs: 'Java or Python, data structures & algorithms, SQL, REST APIs, OOP' },
@@ -239,7 +367,7 @@
 
   document.getElementById('screenBtn').addEventListener('click', function(){
     var status = document.getElementById('screenStatus');
-    if (!sample) { status.textContent = 'Live AI connection needed \u2014 open this page inside claude.ai.'; return; }
+    if (!window.sample) { status.textContent = 'AI connection needed.'; return; }
     var role = ROLES[roleKey];
     var name = document.getElementById('cname').value || 'Candidate';
     var github = document.getElementById('cgithub').value.trim();
@@ -257,7 +385,7 @@
       '\nCheck: (1) whether the name and the GitHub/LinkedIn URLs plausibly belong to the same person (e.g. matching name in the URL slug); (2) whether the resume clearly lists specific skills, not just a job title; (3) whether the resume describes projects with enough concrete detail (tech stack, what was built, outcome) to be checked against GitHub, versus vague unverifiable claims.\n' +
       'Score each 0-10 based on everything given: programming, dsa, backend, database, projects, github, linkedin, communication.\n' +
       'Return ONLY JSON: {"programming":n,"dsa":n,"backend":n,"database":n,"projects":n,"github":n,"linkedin":n,"communication":n,"identityConsistent":true|false,"identityNote":"one sentence","skillsListed":true|false,"projectsVerifiable":true|false,"projectsNote":"one sentence","reason":"one sentence overall"}';
-    sample.json(prompt, opts).then(function(res){
+    window.sample.json(prompt, opts).then(function(res){
       var identityConsistent = res.identityConsistent !== false;
       if (!identityConsistent) {
         status.className = 'error';
@@ -350,7 +478,7 @@
     var prompt = 'You are interviewing a candidate for ' + c.title + '. Required skills: ' + c.reqs +
       '. Resume: ' + c.resume + '. Interview so far:\n' + transcriptText +
       '\nReturn ONLY JSON: {"evaluation": "one short sentence on the last answer", "nextQuestion": "the next interview question, going deeper if the answer was strong or simpler if it was weak"}';
-    sample.json(prompt, { modelTier: 'quick', cache: false }).then(function(res){
+    window.sample.json(prompt, { modelTier: 'quick', cache: false }).then(function(res){
       document.getElementById('evalnote').textContent = res.evaluation || '';
       qIndex++;
       document.getElementById('qcount').textContent = 'Question ' + qIndex + '/' + maxQ;
@@ -369,7 +497,7 @@
     var prompt = 'Summarize this technical interview for a recruiter. Role: ' + c.title + '. Candidate: ' + c.name +
       '. Resume/profile screening score: ' + c.overall + '/10. Transcript:\n' + transcriptText +
       '\nReturn ONLY JSON: {"technicalScore": number 0-100, "communicationScore": number 0-100, "summary": "1-2 sentences", "strengths": ["", ""], "weaknesses": ["", ""]}';
-    sample.json(prompt, { cache: false }).then(function(res){
+    window.sample.json(prompt, { cache: false }).then(function(res){
       document.getElementById('evalnote').textContent = '';
       var rep = document.getElementById('report');
       rep.style.display = 'block';
