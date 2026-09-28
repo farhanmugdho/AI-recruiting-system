@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Recruiter System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F4F5F7; --surface:#FFFFFF; --ink:#1B1E24; --muted:#666D78;
+    --accent:#2A5BD7; --accent-soft:#E8EEFC; --good:#1F8A5F; --good-soft:#E4F5EC;
+    --line:#E3E5EA; --line-strong:#CDD1D9;
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#12141A; --surface:#1B1F27; --ink:#E7E9ED; --muted:#8B93A1;
+      --accent:#7AA2FF; --accent-soft:#1E2740; --good:#63D9A0; --good-soft:#16261F;
+      --line:#2A2F3A; --line-strong:#3A4150;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#12141A; --surface:#1B1F27; --ink:#E7E9ED; --muted:#8B93A1;
+    --accent:#7AA2FF; --accent-soft:#1E2740; --good:#63D9A0; --good-soft:#16261F;
+    --line:#2A2F3A; --line-strong:#3A4150;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:920px;margin:0 auto;padding:3rem 1.5rem 4rem;}
+  .disp{font-family:'Space Grotesk',sans-serif;}
+  h1{font-size:clamp(1.9rem,4.2vw,2.7rem);line-height:1.15;font-weight:600;margin:0 0 0.7rem;letter-spacing:-0.01em;max-width:22ch;}
+  .lede{font-size:1.02rem;color:var(--muted);max-width:62ch;line-height:1.6;margin:0 0 2.2rem;}
+  section.tool{margin-bottom:2.2rem;}
+  .tool h2{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:600;margin:0 0 0.6rem;display:flex;align-items:center;gap:0.5rem;}
+  .stepnum{display:inline-flex;align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--accent);color:#fff;font-size:0.78rem;font-weight:700;}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.1rem;}
+  label{display:block;font-size:0.76rem;color:var(--muted);margin-bottom:0.3rem;margin-top:0.7rem;}
+  label:first-child{margin-top:0;}
+  input[type=text],textarea,select{width:100%;border:1px solid var(--line-strong);border-radius:7px;padding:0.55rem 0.65rem;font-family:inherit;font-size:0.86rem;background:var(--bg);color:var(--ink);}
+  textarea{min-height:80px;resize:vertical;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  @media (max-width:640px){.row2{grid-template-columns:1fr;}}
+  .btn{border:none;background:var(--accent);color:#fff;border-radius:7px;padding:0.55rem 1.1rem;font-size:0.86rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:0.9rem;}
+  .btn:disabled{opacity:0.5;cursor:default;}
+  .btn.ghost{background:transparent;border:1px solid var(--line-strong);color:var(--ink);}
+  #screenStatus{font-size:0.82rem;color:var(--muted);margin-top:0.6rem;white-space:pre-wrap;}
+  #screenStatus.error{color:#C0392B;font-weight:600;}
+  table{width:100%;border-collapse:collapse;margin-top:0.8rem;font-size:0.86rem;}
+  th,td{text-align:left;padding:0.5rem 0.6rem;border-bottom:1px solid var(--line);}
+  th{color:var(--muted);font-weight:500;font-size:0.76rem;}
+  tr.cand{cursor:pointer;}
+  tr.cand:hover td{color:var(--accent);}
+  tr.cand.picked td{color:var(--accent);font-weight:600;}
+  .score{font-weight:700;}
+  #interviewPanel{display:none;}
+  .qbar{display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem;}
+  #timer{font-variant-numeric:tabular-nums;font-weight:600;}
+  .qtext{background:var(--accent-soft);border-radius:8px;padding:0.8rem 0.9rem;font-size:0.92rem;margin-bottom:0.7rem;}
+  .evalnote{font-size:0.8rem;color:var(--good);margin:0.4rem 0 0.9rem;}
+  .transcript{max-height:220px;overflow-y:auto;margin-bottom:0.8rem;}
+  .turn{font-size:0.82rem;margin-bottom:0.6rem;}
+  .turn b{color:var(--muted);font-weight:600;}
+  .report{background:var(--good-soft);border-radius:8px;padding:1rem;margin-top:0.8rem;font-size:0.88rem;line-height:1.6;white-space:pre-wrap;}
+  #note{display:none;font-size:0.76rem;color:var(--muted);margin-bottom:1rem;}
+  footer{text-align:center;color:var(--muted);font-size:0.8rem;margin-top:2.5rem;}
+  .roles{display:flex;gap:0.6rem;flex-wrap:wrap;}
+  .rolebtn{border:1px solid var(--line-strong);background:transparent;color:var(--ink);border-radius:8px;padding:0.55rem 0.9rem;font-size:0.86rem;cursor:pointer;font-family:inherit;}
+  .rolebtn.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  .req{color:#C0392B;}
+  input[type=file]{width:100%;font-size:0.8rem;color:var(--muted);}
+  #fileStatus{font-size:0.78rem;color:var(--muted);margin-top:0.4rem;min-height:1.2em;white-space:pre-wrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="disp">The recruiter who never runs out of interview slots.</h1>
+  <p class="lede">A working slice of the full AI Recruiter System: post a role, screen and rank candidates against it, then run a timed, adaptive AI interview that gets harder or easier depending on how each answer lands.</p>
+  <div id="note"></div>
+
+  <section class="tool">
+    <h2><span class="stepnum">1</span>Job description</h2>
+    <div class="panel">
+      <label>Position</label>
+      <div class="roles" id="roleButtons"></div>
+      <label>Experience level</label>
+      <input type="text" id="expLevel" value="0&ndash;2 years">
+    </div>
+  </section>
+
+  <section class="tool">
+    <h2><span class="stepnum">2</span>Candidate applies</h2>
+    <div class="panel">
+      <label>Candidate name</label><input type="text" id="cname" value="Rahim">
+      <div class="row2">
+        <div><label>GitHub <span class="req">*</span></label><input type="text" id="cgithub" placeholder="github.com/&hellip;"></div>
+        <div><label>LinkedIn <span class="req">*</span></label><input type="text" id="clinkedin" placeholder="linkedin.com/in/&hellip;"></div>
+      </div>
+      <label>Resume (PDF, DOCX, or a photo) <span class="req">*</span></label>
+      <input type="file" id="resumeFile" accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx,image/*">
+      <div id="fileStatus"></div>
+      <button class="btn" id="screenBtn">Screen &amp; add to shortlist</button>
+      <div id="screenStatus"></div>
+    </div>
+  </section>
+
+  <section class="tool">
+    <h2><span class="stepnum">3</span>Candidate ranking</h2>
+    <div class="panel">
+      <table id="rankTable">
+        <thead><tr><th>Candidate</th><th>Overall</th><th>Identity</th><th>Status</th></tr></thead>
+        <tbody id="rankBody"><tr><td colspan="4" style="color:var(--muted)">No candidates screened yet.</td></tr></tbody>
+      </table>
+      <div style="font-size:0.76rem;color:var(--muted);margin-top:0.5rem;">Scored on the 8-part profile scale (programming, DSA, backend, database, projects, GitHub, LinkedIn, communication). 7/10 or higher, with a consistent identity and clearly listed skills, unlocks the interview automatically.</div>
+    </div>
+  </section>
+
+  <section class="tool">
+    <h2><span class="stepnum">4</span>Timed AI interview</h2>
+    <div class="panel">
+      <button class="btn" id="startInterview" disabled>Start interview</button>
+      <div id="interviewPanel">
+        <div class="qbar"><span id="qcount">Question 1/5</span><span>Time left: <span id="timer">90s</span></span></div>
+        <div class="qtext" id="qtext"></div>
+        <textarea id="answer" placeholder="Type the candidate's answer&hellip;"></textarea>
+        <button class="btn" id="submitAnswer">Submit answer</button>
+        <div class="evalnote" id="evalnote"></div>
+        <div class="transcript" id="transcript"></div>
+        <div class="report" id="report" style="display:none;"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Core-loop prototype for the AI Recruiter System proposal &mdash; coding assessment, behavioral round, and the recruiter dashboard are scoped in the roadmap, not built here.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+<script>
+(function(){
+  if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }
+
+  var sample = null;
+  function showNote(t){ var n=document.getElementById('note'); n.textContent=t; n.style.display='block'; }
+  (window.claude && window.claude.use ? window.claude.use('sample') : Promise.resolve(null))
+    .then(function(s){ sample = s; if(!s) showNote('This prototype needs the live AI connection \u2014 open it inside claude.ai to screen candidates and run interviews.'); })
+    .catch(function(){ showNote('This prototype needs the live AI connection \u2014 open it inside claude.ai to screen candidates and run interviews.'); });
+
+  var ROLES = {
+    sde: { title: 'Junior Software Engineer', reqs: 'Java or Python, data structures & algorithms, SQL, REST APIs, OOP' },
+    uiux: { title: 'UI/UX Designer', reqs: 'Figma or Sketch, user research, wireframing & prototyping, interaction design, usability testing' },
+    cyber: { title: 'Cybersecurity Engineer', reqs: 'network security, threat & vulnerability analysis, SIEM tools, incident response, Linux/scripting' }
+  };
+  var roleKey = 'sde';
+  var roleWrap = document.getElementById('roleButtons');
+  Object.keys(ROLES).forEach(function(key){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'rolebtn' + (key === roleKey ? ' active' : ''); b.textContent = ROLES[key].title;
+    b.addEventListener('click', function(){
+      roleKey = key;
+      roleWrap.querySelectorAll('.rolebtn').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+    });
+    roleWrap.appendChild(b);
+  });
+
+  var resumeText = '', resumeImageBlob = null;
+  var resumeFileInput = document.getElementById('resumeFile');
+  var fileStatus = document.getElementById('fileStatus');
+
+  function extractPdfText(file){
+    return file.arrayBuffer().then(function(buf){
+      return pdfjsLib.getDocument({ data: buf }).promise.then(function(pdf){
+        var maxPages = Math.min(pdf.numPages, 5), pagePromises = [];
+        for (var i = 1; i <= maxPages; i++) {
+          pagePromises.push(pdf.getPage(i).then(function(page){
+            return page.getTextContent().then(function(tc){ return tc.items.map(function(it){ return it.str; }).join(' '); });
+          }));
+        }
+        return Promise.all(pagePromises).then(function(texts){ return texts.join('\n\n'); });
+      });
+    });
+  }
+
+  resumeFileInput.addEventListener('change', function(){
+    var file = resumeFileInput.files[0];
+    resumeText = ''; resumeImageBlob = null;
+    if (!file) return;
+    if (file.type === 'application/pdf') {
+      fileStatus.textContent = 'Reading ' + file.name + '\u2026';
+      if (!window.pdfjsLib) { fileStatus.textContent = 'PDF reading is unavailable right now.'; return; }
+      extractPdfText(file).then(function(text){
+        resumeText = text.slice(0, 6000);
+        fileStatus.textContent = 'Extracted text from ' + file.name + '.';
+      }).catch(function(){ fileStatus.textContent = "Couldn't read that PDF."; });
+    } else if (file.name.toLowerCase().indexOf('.docx') !== -1 || file.type.indexOf('wordprocessingml') !== -1) {
+      fileStatus.textContent = 'Reading ' + file.name + '\u2026';
+      if (!window.mammoth) { fileStatus.textContent = 'DOCX reading is unavailable right now.'; return; }
+      file.arrayBuffer().then(function(buf){
+        return mammoth.extractRawText({ arrayBuffer: buf });
+      }).then(function(res){
+        resumeText = (res.value || '').slice(0, 6000);
+        fileStatus.textContent = 'Extracted text from ' + file.name + '.';
+      }).catch(function(){ fileStatus.textContent = "Couldn't read that DOCX."; });
+    } else if (file.type.indexOf('image/') === 0) {
+      resumeImageBlob = file;
+      fileStatus.textContent = 'Attached photo: ' + file.name + ' \u2014 read visually when screened.';
+    } else {
+      fileStatus.textContent = 'Please upload a PDF, DOCX, or photo of the resume.';
+    }
+  });
+
+  var candidates = [];
+  var selected = -1;
+
+  var DIMS = ['programming','dsa','backend','database','projects','github','linkedin','communication'];
+
+  function renderRank(){
+    var body = document.getElementById('rankBody');
+    if (!candidates.length) { body.innerHTML = '<tr><td colspan="4" style="color:var(--muted)">No candidates screened yet.</td></tr>'; return; }
+    var sorted = candidates.slice().sort(function(a,b){ return b.overall - a.overall; });
+    body.innerHTML = '';
+    sorted.forEach(function(c){
+      var tr = document.createElement('tr');
+      tr.className = 'cand' + (candidates.indexOf(c) === selected ? ' picked' : '');
+      var idBadge = c.identityConsistent === false ? '<span style="color:#C0392B">\u26a0 Mismatch</span>' : '<span style="color:var(--good)">\u2713 Consistent</span>';
+      var statusBadge = c.qualifies ? '<span style="color:var(--good);font-weight:600">Qualified</span>' : (c.identityConsistent === false ? '<span style="color:#C0392B">Flagged</span>' : (c.skillsListed === false ? '<span style="color:#C0392B">No clear skills</span>' : '<span style="color:var(--muted)">Below threshold</span>'));
+      tr.innerHTML = '<td>' + c.name + '</td><td class="score">' + c.overall + '/10</td><td>' + idBadge + '</td><td>' + statusBadge + '</td>';
+      tr.addEventListener('click', function(){
+        selected = candidates.indexOf(c);
+        renderRank();
+        document.getElementById('startInterview').disabled = !c.qualifies;
+      });
+      body.appendChild(tr);
+    });
+  }
+
+  document.getElementById('screenBtn').addEventListener('click', function(){
+    var status = document.getElementById('screenStatus');
+    if (!sample) { status.textContent = 'Live AI connection needed \u2014 open this page inside claude.ai.'; return; }
+    var role = ROLES[roleKey];
+    var name = document.getElementById('cname').value || 'Candidate';
+    var github = document.getElementById('cgithub').value.trim();
+    var linkedin = document.getElementById('clinkedin').value.trim();
+    if (!github || !linkedin) { status.textContent = 'GitHub and LinkedIn are both required.'; return; }
+    if (!resumeText && !resumeImageBlob) { status.textContent = 'Upload a resume (PDF, DOCX, or photo) first.'; return; }
+    status.textContent = 'Screening ' + name + '\u2026';
+
+    var opts = { modelTier: 'quick', cache: false };
+    var resumePart;
+    if (resumeImageBlob) { opts.images = resumeImageBlob; resumePart = 'The attached image is the candidate\u2019s resume \u2014 read it directly.'; }
+    else { resumePart = 'Candidate resume: ' + resumeText; }
+    var prompt = 'You are an ATS screening a candidate for a ' + role.title + ' role. Required skills/qualities: ' + role.reqs + '.\n' +
+      'Candidate name: ' + name + '\nGitHub: ' + github + '\nLinkedIn: ' + linkedin + '\n' + resumePart +
+      '\nCheck: (1) whether the name and the GitHub/LinkedIn URLs plausibly belong to the same person (e.g. matching name in the URL slug); (2) whether the resume clearly lists specific skills, not just a job title; (3) whether the resume describes projects with enough concrete detail (tech stack, what was built, outcome) to be checked against GitHub, versus vague unverifiable claims.\n' +
+      'Score each 0-10 based on everything given: programming, dsa, backend, database, projects, github, linkedin, communication.\n' +
+      'Return ONLY JSON: {"programming":n,"dsa":n,"backend":n,"database":n,"projects":n,"github":n,"linkedin":n,"communication":n,"identityConsistent":true|false,"identityNote":"one sentence","skillsListed":true|false,"projectsVerifiable":true|false,"projectsNote":"one sentence","reason":"one sentence overall"}';
+    sample.json(prompt, opts).then(function(res){
+      var identityConsistent = res.identityConsistent !== false;
+      if (!identityConsistent) {
+        status.className = 'error';
+        status.textContent = '\u274c Error: GitHub, LinkedIn, and resume don\u2019t appear to belong to the same person \u2014 ' + (res.identityNote || 'the name doesn\u2019t match across the profiles') + '. Not added to the shortlist. Fix the mismatch and screen again.';
+        return;
+      }
+      status.className = '';
+      var sum = 0;
+      DIMS.forEach(function(d){ sum += Math.max(0, Math.min(10, Number(res[d]) || 0)); });
+      var overall = Math.round((sum / DIMS.length) * 10) / 10;
+      var skillsListed = res.skillsListed !== false;
+      var qualifies = overall >= 7 && skillsListed;
+      var resumeNote = resumeText || ('Resume provided as a photo. Screening note: ' + (res.reason || ''));
+      var c = { name: name, github: github, linkedin: linkedin, resume: resumeNote, title: role.title, reqs: role.reqs,
+        overall: overall, identityConsistent: identityConsistent, identityNote: res.identityNote || '',
+        skillsListed: skillsListed, projectsVerifiable: res.projectsVerifiable !== false, projectsNote: res.projectsNote || '',
+        reason: res.reason || '', qualifies: qualifies };
+      candidates.push(c);
+      renderRank();
+      if (!skillsListed) {
+        status.textContent = '\u26a0 ' + name + '\u2019s resume doesn\u2019t clearly list skills \u2014 flagged for manual review, interview not started automatically.';
+      } else if (qualifies) {
+        status.textContent = '\u2705 ' + name + ' scored ' + overall + '/10 \u2014 qualified. Starting the interview automatically\u2026';
+        selected = candidates.indexOf(c);
+        renderRank();
+        setTimeout(function(){ document.getElementById('startInterview').click(); }, 600);
+      } else {
+        status.textContent = name + ' scored ' + overall + '/10 \u2014 below the 7/10 threshold. ' + (res.reason || '');
+      }
+    }).catch(function(e){
+      status.className = 'error';
+      if (e.code === 'images_unavailable' || e.code === 'image_rejected') {
+        status.textContent = "Couldn't read that photo here \u2014 try a PDF or DOCX instead.";
+      } else {
+        status.textContent = e.text || "Couldn't screen that resume \u2014 try again.";
+      }
+    });
+  });
+
+  renderRank();
+
+  var qIndex = 0, maxQ = 5, turns = [], timerId = null, timeLeft = 90;
+  function stopTimer(){ if (timerId) clearInterval(timerId); }
+  function startTimer(){
+    stopTimer(); timeLeft = 90;
+    document.getElementById('timer').textContent = timeLeft + 's';
+    timerId = setInterval(function(){
+      timeLeft--;
+      document.getElementById('timer').textContent = Math.max(0, timeLeft) + 's';
+      if (timeLeft <= 0) stopTimer();
+    }, 1000);
+  }
+
+  function addTurn(who, text){
+    var d = document.createElement('div'); d.className = 'turn';
+    d.innerHTML = '<b>' + who + ':</b> ' + text;
+    document.getElementById('transcript').appendChild(d);
+  }
+
+  document.getElementById('startInterview').addEventListener('click', function(){
+    if (selected < 0 || !sample) return;
+    var c = candidates[selected];
+    if (!c.qualifies) return;
+    qIndex = 1; turns = [];
+    document.getElementById('interviewPanel').style.display = 'block';
+    document.getElementById('report').style.display = 'none';
+    document.getElementById('transcript').innerHTML = '';
+    document.getElementById('evalnote').textContent = '';
+    document.getElementById('qcount').textContent = 'Question ' + qIndex + '/' + maxQ;
+    var q1 = 'Walk me through a project on your resume that\u2019s most relevant to the ' + c.title + ' role.';
+    document.getElementById('qtext').textContent = q1;
+    turns.push({ role: 'question', text: q1 });
+    addTurn('AI', q1);
+    startTimer();
+  });
+
+  document.getElementById('submitAnswer').addEventListener('click', function(){
+    var c = candidates[selected];
+    var ans = document.getElementById('answer').value.trim();
+    if (!ans || !sample) return;
+    stopTimer();
+    addTurn('Candidate', ans);
+    turns.push({ role: 'answer', text: ans });
+    document.getElementById('answer').value = '';
+    document.getElementById('evalnote').textContent = 'Evaluating\u2026';
+
+    if (qIndex >= maxQ) { finishInterview(c); return; }
+
+    var transcriptText = turns.map(function(t){ return (t.role === 'question' ? 'Q: ' : 'A: ') + t.text; }).join('\n');
+    var prompt = 'You are interviewing a candidate for ' + c.title + '. Required skills: ' + c.reqs +
+      '. Resume: ' + c.resume + '. Interview so far:\n' + transcriptText +
+      '\nReturn ONLY JSON: {"evaluation": "one short sentence on the last answer", "nextQuestion": "the next interview question, going deeper if the answer was strong or simpler if it was weak"}';
+    sample.json(prompt, { modelTier: 'quick', cache: false }).then(function(res){
+      document.getElementById('evalnote').textContent = res.evaluation || '';
+      qIndex++;
+      document.getElementById('qcount').textContent = 'Question ' + qIndex + '/' + maxQ;
+      document.getElementById('qtext').textContent = res.nextQuestion || 'Tell me more about that.';
+      turns.push({ role: 'question', text: res.nextQuestion || '' });
+      addTurn('AI', res.nextQuestion || '');
+      startTimer();
+    }).catch(function(e){
+      document.getElementById('evalnote').textContent = e.text || "Couldn't evaluate that \u2014 try submitting again.";
+    });
+  });
+
+  function finishInterview(c){
+    document.getElementById('evalnote').textContent = 'Generating final report\u2026';
+    var transcriptText = turns.map(function(t){ return (t.role === 'question' ? 'Q: ' : 'A: ') + t.text; }).join('\n');
+    var prompt = 'Summarize this technical interview for a recruiter. Role: ' + c.title + '. Candidate: ' + c.name +
+      '. Resume/profile screening score: ' + c.overall + '/10. Transcript:\n' + transcriptText +
+      '\nReturn ONLY JSON: {"technicalScore": number 0-100, "communicationScore": number 0-100, "summary": "1-2 sentences", "strengths": ["", ""], "weaknesses": ["", ""]}';
+    sample.json(prompt, { cache: false }).then(function(res){
+      document.getElementById('evalnote').textContent = '';
+      var rep = document.getElementById('report');
+      rep.style.display = 'block';
+      rep.textContent = 'Candidate: ' + c.name + '\nScreening score: ' + c.overall + '/10\nTechnical score: ' + res.technicalScore + '%\nCommunication: ' + res.communicationScore + '%\n\nOverall: ' + res.summary +
+        '\n\nStrengths:\n- ' + (res.strengths || []).join('\n- ') + '\n\nWeaknesses:\n- ' + (res.weaknesses || []).join('\n- ');
+    }).catch(function(e){
+      document.getElementById('evalnote').textContent = e.text || "Couldn't generate the report \u2014 try finishing again.";
+    });
+  }
+})();
+</script>
+</body>
+</html>
