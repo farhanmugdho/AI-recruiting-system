@@ -21,11 +21,12 @@ A prototype of an AI-powered recruiter system that:
 - HTML5, CSS3, vanilla JavaScript
 - pdf.js for PDF parsing
 - mammoth for DOCX parsing
-- Claude AI integration for screening and interview
+- **Local Mock AI**: Works without claude.ai - uses keyword-based scoring and evaluation
+- Claude AI integration (optional) for enhanced screening and interview experience
 
 ## Usage
 
-Open the HTML file in [claude.ai](https://claude.ai) to enable the AI screening functionality. The prototype requires the live AI connection to screen candidates and run interviews.
+Open the HTML file in any browser. The system includes a local mock AI that functions without claude.ai, or open in [claude.ai](https://claude.ai) for the full AI-powered experience with live screening and interviews.
 
 ## License
 
