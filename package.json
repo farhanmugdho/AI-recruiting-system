@@ -1,0 +1,27 @@
+{
+  "name": "ai-recruiting-system",
+  "version": "1.0.0",
+  "description": "A prototype of an AI-powered recruiter system that:\r - Posts job roles and screens candidates\r - Parses resumes (PDF, DOCX, images)\r - Ranks candidates on 8 dimensions (programming, DSA, backend, database, projects, GitHub, LinkedIn, communication)\r - Runs timed, adaptive AI interviews\r - Generates final interview reports",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/farhanmugdho/AI-recruiting-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/farhanmugdho/AI-recruiting-system/issues"
+  },
+  "homepage": "https://github.com/farhanmugdho/AI-recruiting-system#readme",
+  "dependencies": {
+    "dotenv": "^18.0.5",
+    "express": "^5.2.1",
+    "openai": "^7.27.0"
+  }
+}
