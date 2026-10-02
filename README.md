@@ -7,88 +7,141 @@ A prototype of an AI-powered recruiter system that:
 - Runs timed, adaptive AI interviews
 - Generates final interview reports
 
-## Features
+## 📋 Prerequisites (First-Time Setup)
 
-- **Role Selection**: SDE, UI/UX Designer, Cybersecurity Engineer
-- **Resume Parsing**: PDF.js and Mammoth for text extraction
-- **8-Dimensional Scoring**: programming, dsa, backend, database, projects, github, linkedin, communication
-- **Automatic Qualification**: 7/10+ score with skills listed auto-starts interview
-- **Adaptive Interview**: 5 questions that adjust difficulty based on answers
-- **Light/Dark Themes**: Full CSS variables support for prefers-color-scheme
+Before running the project, your friend needs to install:
 
-## Tech Stack
+1. **Node.js** (download from [nodejs.org](https://nodejs.org) - includes npm)
+2. **Git** (or use [GitHub Desktop](https://desktop.github.com))
 
-- HTML5, CSS3, vanilla JavaScript
-- pdf.js for PDF parsing
-- mammoth for DOCX parsing
-- **Express + OpenAI backend** - screening and interview run through your own server and OpenAI key
-- **No claude.ai dependency** - works entirely with your OpenAI account
+## 🚀 Step-by-Step: From Zero to Running
 
-## Prerequisites
+### Step 1: Get the Project
 
-- [OpenAI API key](https://platform.openai.com/account/api-keys) (get it from your OpenAI dashboard)
-- Node.js installed (v14+ recommended)
+Open Command Prompt (cmd) or PowerShell and run:
 
-## Step-by-Step Setup
-
-### 1. Install dependencies
-
-```bash
+```cmd
+git clone https://github.com/farhanmugdho/AI-recruiting-system.git
 cd AI-recruiting-system
+```
+
+This downloads everything: the HTML file, server code, and all dependencies.
+
+### Step 2: Install Packages
+
+```cmd
 npm install
 ```
 
-### 2. Set up your OpenAI key
+This installs `express`, `openai`, and `dotenv` (about 70 packages total). Wait for it to finish - you'll see output lines adding packages.
 
-```bash
-cp .env.example .env
-# Edit .env and replace the placeholder with your actual key:
-# Notion: OPENAI_API_KEY=sk-your-actual-openai-key-here
+### Step 3: Set Up Your OpenAI Key
+
+The project needs an OpenAI API key to work (screening and interview answers go through OpenAI's `gpt-4o-mini` model).
+
+```cmd
+copy .env.example .env
 ```
 
-### 3. Start the server
+Then edit the key:
 
-```bash
+```cmd
+notepad .env
+```
+
+Replace the line:
+```
+OPENAI_API_KEY=sk-your-openai-api-key-here
+```
+
+with their actual key from [platform.openai.com/account/api-keys](https://platform.openai.com/account/api-keys).
+
+**Save and close notepad.**
+
+### Step 4: Start the Server
+
+```cmd
 node server.js
 ```
 
-You should see: `AI Recruiter Server running at http://0.0.0.0:5000`
+You should see:
+```
+AI Recruiter Server running at http://0.0.0.0:5000
+```
 
-### 4. Open in Chrome
+If you get an error about a missing key, double-check the `.env` file.
 
-Open your browser and go to:
+### Step 5: Open in Chrome
 
+```cmd
+start http://localhost:5000
+```
+
+Or simply open Chrome and go to:
 ```
 http://localhost:5000
 ```
 
-Or on your local network, find your IP with `ipconfig` and share:
+**You should now see the AI Recruiter System frontend.**
+
+## 🌐 Sharing on a Local Network (LAN)
+
+If you want to share with friends on the same Wi-Fi:
+
+1. Find your IP address: `ipconfig` (look for "IPv4 Address")
+2. Share that URL: `http://192.168.1.x:5000` (replace with your actual IP)
+3. Friends open that URL in their Chrome browsers
+
+**No code changes needed** - `server.js` already binds to `0.0.0.0` so it works on any network.
+
+## 🛠 How It Works
+
+### 1. Screen a Candidate
+- Select a role (SDE, UI/UX Designer, or Cybersecurity Engineer)
+- Enter candidate name, GitHub URL, LinkedIn URL
+- Upload a resume (PDF, DOCX, or photo of resume)
+- Click "Screen & add to shortlist"
+- The backend calls OpenAI to score on 8 dimensions
+- Candidates with **7/10+ score + skills listed** auto-qualify for interview
+
+### 2. Start Interview
+- Click "Start interview" on any qualified candidate
+- A timed 5-question adaptive interview begins
+- Questions get harder or easier based on answers
+- Each answer is evaluated by OpenAI
+
+### 3. View Report
+- After 5 questions, a final report generates
+- Shows technical score (0-100%), communication score, summary, strengths, weaknesses
+
+## ⚠️ Important Notes
+
+- **Cost**: Every screening and interview turn makes a real OpenAI API call using your key - this will use your API credits
+- **Key security**: The `.env` file is gitignored - your API key never reaches the browser or anyone else
+- **Offline parsing**: Resume text extraction (PDF/DOCX) happens in the browser - your server only receives the extracted text + OpenAI scores
+- **No claude.ai needed**: This version works entirely with your OpenAI account - no Claude dependency
+
+## 🔄 Commands Summary (Copy-Paste)
+
+```cmd
+:: Step 1: Clone
+git clone https://github.com/farhanmugdho/AI-recruiting-system.git
+cd AI-recruiting-system
+
+:: Step 2: Install
+npm install
+
+:: Step 3: Key
+copy .env.example .env
+:: (edit .env with your OpenAI key)
+
+:: Step 4: Start
+node server.js
+
+:: Step 5: Open Chrome
+start http://localhost:5000
 ```
-http://192.168.1.x:5000
-```
 
-## How It Works
+---
 
-1. **Screen candidates**: Fill in the role, candidate name, GitHub/LinkedIn, and upload a resume (PDF, DOCX, or photo). The backend calls OpenAI to score them on 8 dimensions. Candidates scoring 7/10+ with skills listed auto-qualify for interview.
-
-2. **Start interview**: Click "Start interview" on any qualified candidate. The backend conducts a timed 5-question adaptive interview via OpenAI.
-
-3. **View report**: After the interview, a final technical + communication score report is generated.
-
-## Running on LAN
-
-To share with friends on the same network:
-
-1. Find your IP: `ipconfig` (look for IPv4 Address)
-2. Share: `http://YOUR_IP:5000`
-3. No code changes needed - `server.js` already binds to `0.0.0.0`
-
-## Important Notes
-
-- Every screening and interview turn makes a real OpenAI API call using your `OPENAI_API_KEY` - this will use your API credits
-- The `.env` file is gitignored - your API key never reaches the browser
-- Resume text/PDF extraction happens entirely in the browser - your server only receives the extracted text + scores from OpenAI
-
-## License
-
-Prototype for AI Recruiter System proposal.
+**License**: Prototype for AI Recruiter System proposal.
