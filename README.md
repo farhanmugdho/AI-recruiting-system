@@ -21,24 +21,73 @@ A prototype of an AI-powered recruiter system that:
 - HTML5, CSS3, vanilla JavaScript
 - pdf.js for PDF parsing
 - mammoth for DOCX parsing
-- **Local Mock AI**: Works without claude.ai - uses keyword-based scoring and evaluation
-- Claude AI integration (optional) for enhanced screening and interview experience
+- **Express + OpenAI backend** - screening and interview run through your own server and OpenAI key
+- **No claude.ai dependency** - works entirely with your OpenAI account
 
-## Usage
+## Prerequisites
 
-Run a local web server to open the HTML file:
+- [OpenAI API key](https://platform.openai.com/account/api-keys) (get it from your OpenAI dashboard)
+- Node.js installed (v14+ recommended)
+
+## Step-by-Step Setup
+
+### 1. Install dependencies
 
 ```bash
-# Python
-python -m http.server 8000
-
-# Or Node.js
-npx serve -l 8000
+cd AI-recruiting-system
+npm install
 ```
 
-Then open: `http://localhost:8000/AI%20Recruiter%20System.html`
+### 2. Set up your OpenAI key
 
-Or simply double-click the HTML file in any browser (local mock AI works offline, or open in [claude.ai](https://claude.ai) for full AI experience).
+```bash
+cp .env.example .env
+# Edit .env and replace the placeholder with your actual key:
+# Notion: OPENAI_API_KEY=sk-your-actual-openai-key-here
+```
+
+### 3. Start the server
+
+```bash
+node server.js
+```
+
+You should see: `AI Recruiter Server running at http://0.0.0.0:5000`
+
+### 4. Open in Chrome
+
+Open your browser and go to:
+
+```
+http://localhost:5000
+```
+
+Or on your local network, find your IP with `ipconfig` and share:
+```
+http://192.168.1.x:5000
+```
+
+## How It Works
+
+1. **Screen candidates**: Fill in the role, candidate name, GitHub/LinkedIn, and upload a resume (PDF, DOCX, or photo). The backend calls OpenAI to score them on 8 dimensions. Candidates scoring 7/10+ with skills listed auto-qualify for interview.
+
+2. **Start interview**: Click "Start interview" on any qualified candidate. The backend conducts a timed 5-question adaptive interview via OpenAI.
+
+3. **View report**: After the interview, a final technical + communication score report is generated.
+
+## Running on LAN
+
+To share with friends on the same network:
+
+1. Find your IP: `ipconfig` (look for IPv4 Address)
+2. Share: `http://YOUR_IP:5000`
+3. No code changes needed - `server.js` already binds to `0.0.0.0`
+
+## Important Notes
+
+- Every screening and interview turn makes a real OpenAI API call using your `OPENAI_API_KEY` - this will use your API credits
+- The `.env` file is gitignored - your API key never reaches the browser
+- Resume text/PDF extraction happens entirely in the browser - your server only receives the extracted text + scores from OpenAI
 
 ## License
 
